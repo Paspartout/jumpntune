@@ -1,0 +1,4 @@
+*.o
+./musicat
+tags
+vendor/raylib/src/libraylib.a
