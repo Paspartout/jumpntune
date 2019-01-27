@@ -137,9 +137,38 @@ int MapGetTileVec(Map* map, Vector2 tilePos) {
 }
 
 
+const static int ONEWAY_TILES[] = {41, 158};
+
+// TODO: Specify layer?
+MapTileType MapGetTileType(Map* map, int tileX, int tileY) {
+	const int w = map->tiledMap->width;
+	const int h = map->tiledMap->height;
+	if (tileX > w || tileY > h) {
+		return -1;
+	}
+	const int tid = map->collisionLayer->data[tileX + tileY * w]-1;
+	if (tid <= 0) {
+		return TileEmpty;
+	}
+
+	for (int i = 0; i < 2; i++) {
+		if (tid == ONEWAY_TILES[i]) {
+			return TileOneWay;
+		}
+	}
+
+	return TileFull;
+}
+
+MapTileType MapGetTileTypeVec(Map* map, Vector2 tilePos) {
+	return MapGetTileType(map, tilePos.x, tilePos.y);
+}
+
+
 Vector2 MapWorldPosToMapPos(Map* map, float worldX, float worldY) {
 	const int tileSize = map->tiledTileset->tilewidth;
-	Vector2 mapPosition = {0,0};
+	// TODO:
+	Vector2 mapPosition = {-1,0};
 	const float mx = (worldX - mapPosition.x) / (float)tileSize;
 	const float my = (worldY - mapPosition.y) / (float)tileSize;
 	return (Vector2) {(int)mx, (int)my};

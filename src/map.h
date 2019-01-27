@@ -12,6 +12,11 @@ typedef struct Map {
 	// TODO: Add textures etc
 } Map;
 
+typedef enum MapTileType {
+	TileEmpty,
+	TileFull,
+	TileOneWay,
+} MapTileType;
 
 Rectangle MapTilesheetSourceRec(const Map* map, const int tid);
 Map* LoadMap(const char *basePath, const char* mapPath);
@@ -22,3 +27,6 @@ Vector2 MapWorldPosToMapPosVec(Map* map, Vector2 worldPos);
 
 int MapGetTile(Map* map, int tileX, int tileY);
 int MapGetTileVec(Map* map, Vector2 tilePos);
+
+MapTileType MapGetTileType(Map* map, int tileX, int tileY);
+MapTileType MapGetTileTypeVec(Map* map, Vector2 tilePos);

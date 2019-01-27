@@ -34,7 +34,6 @@ void InitGameplay(Game* game) {
 	map = LoadMap("res", "testmap.json");
 	spritesheet = map->spritesheetTexture;
 	mapWidth = map->tiledMap->width * TILE_SIZE;
-	printf("width: %d\n", mapWidth);
 	DrawMap(map);
 
 	// Load Player spritesheet
@@ -89,11 +88,11 @@ void InitGameplay(Game* game) {
 		UnloadImage(img);
 	}
 
-	player.bbox = (Rectangle) { 50, game->canvasHeight/2, 19, 19 };
+	player.bbox = (Rectangle) { 107, 120, 12, 19 };
 	player.vel = (Vector2) { 0, 0 };
 
     camera.target = (Vector2){ player.bbox.x + 10, player.bbox.y + 10 };
-    camera.offset = (Vector2){ 0, 0 };
+    camera.offset = (Vector2){ -21, 0 };
     camera.rotation = 0.0f;
     camera.zoom = 1.0f;
 
@@ -114,9 +113,6 @@ void DeinitGameplay(Game* game) {
 	UnloadMap(map);
 }
 
-static bool leftWall;
-
-
 
 void UpdateGameplay(Game* game) {
 
@@ -125,43 +121,33 @@ void UpdateGameplay(Game* game) {
 
 	// Camera rotation controls
 
-	if (IsKeyDown(KEY_W)) camera.offset.y+=2;
-	if (IsKeyDown(KEY_A)) camera.offset.x+=2;
-	if (IsKeyDown(KEY_S)) camera.offset.y-=2;
-	if (IsKeyDown(KEY_D)) camera.offset.x-=2;
+	if (debugScreen) {
+		if (IsKeyDown(KEY_W)) camera.offset.y+=2;
+		if (IsKeyDown(KEY_A)) camera.offset.x+=2;
+		if (IsKeyDown(KEY_S)) camera.offset.y-=2;
+		if (IsKeyDown(KEY_D)) camera.offset.x-=2;
+	}
 
 
 	// Player input
 	bool wantJump = false;
+	bool stopJump = false;
 	static bool hitGround = false;
 	static bool hitCeiling = false;
 	{
-
 		if (IsKeyDown(KEY_RIGHT)) {
-			player.vel.x = 7.0f;
+			player.vel.x = 5.0f;
 		}
 		if (IsKeyDown(KEY_LEFT)) {
-			player.vel.x = -7.0f;
+			player.vel.x = -5.0f;
 		}
 
 		wantJump = IsKeyPressed(KEY_SPACE);
+		stopJump = IsKeyReleased(KEY_SPACE);
 
 		if (IsKeyPressed(KEY_F1)) {
 			debugScreen = !debugScreen;
 		}
-		/* if (onGround) { */
-		/* 	player.bbox.y = playerBL.y*21-player.bbox.height; */
-		/* 	player.vel.y = 0; */
-		/* 	if (IsKeyPressed(KEY_SPACE)) { */
-		/* 		player.vel.y = -10.0; */
-		/* 	} */
-		/* } else { */
-		/* 	if (IsKeyReleased(KEY_SPACE) && player.vel.y < -5.0) { */
-		/* 		player.vel.y = -5.0; */
-		/* 	} */
-		/* } */
-
-
 	}
 
 	const int NUM_STEPS = 10;
@@ -172,8 +158,14 @@ void UpdateGameplay(Game* game) {
 
 		// Jump
 		if (hitGround && wantJump) {
-			player.vel.y = -5.0f;
+			player.vel.y = -4.5f;
 		}
+
+		// Stop Jump for lower jumps
+		if (stopJump && !hitGround && player.vel.y < -2.0) {
+			player.vel.y = -2.0f;
+		}
+
 
 		// Handle X movement
 		float movedX = 0.0f;
@@ -198,13 +190,13 @@ void UpdateGameplay(Game* game) {
 			const Vector2 playerTR = MapWorldPosToMapPosVec(map, (Vector2) {player.bbox.x+player.bbox.width, player.bbox.y});
 			const Vector2 playerBL = MapWorldPosToMapPosVec(map, (Vector2) {player.bbox.x, player.bbox.y+player.bbox.height});
 			const Vector2 playerBR = MapWorldPosToMapPosVec(map, (Vector2) {player.bbox.x+player.bbox.width, player.bbox.y+player.bbox.height});
-			int tileTL = MapGetTileVec(map, playerTL);
-			int tileTR = MapGetTileVec(map, playerTR);
-			int tileBL = MapGetTileVec(map, playerBL);
-			int tileBR = MapGetTileVec(map, playerBR);
+			int tileTL = MapGetTileTypeVec(map, playerTL);
+			int tileTR = MapGetTileTypeVec(map, playerTR);
+			int tileBL = MapGetTileTypeVec(map, playerBL);
+			int tileBR = MapGetTileTypeVec(map, playerBR);
 
-			leftWall = tileTL > 0 || tileBL > 0;
-			const bool rightWall = tileTR > 0 || tileBR > 0;
+			const bool leftWall = tileTL != TileEmpty || tileBL != TileEmpty;
+			const bool rightWall = tileTR != TileEmpty || tileBR != TileEmpty;
 
 			if (leftWall || rightWall) {
 				player.bbox.x = oldPlayer.bbox.x;
@@ -236,14 +228,19 @@ void UpdateGameplay(Game* game) {
 			const Vector2 playerTR = MapWorldPosToMapPosVec(map, (Vector2) {player.bbox.x+player.bbox.width, player.bbox.y});
 			const Vector2 playerBL = MapWorldPosToMapPosVec(map, (Vector2) {player.bbox.x, player.bbox.y+player.bbox.height});
 			const Vector2 playerBR = MapWorldPosToMapPosVec(map, (Vector2) {player.bbox.x+player.bbox.width, player.bbox.y+player.bbox.height});
-			int tileTL = MapGetTileVec(map, playerTL);
-			int tileTR = MapGetTileVec(map, playerTR);
-			int tileBL = MapGetTileVec(map, playerBL);
-			int tileBR = MapGetTileVec(map, playerBR);
+			const MapTileType tileTL = MapGetTileTypeVec(map, playerTL);
+			const MapTileType tileTR = MapGetTileTypeVec(map, playerTR);
+			const MapTileType tileBL = MapGetTileTypeVec(map, playerBL);
+			const MapTileType tileBR = MapGetTileTypeVec(map, playerBR);
 
 			// Y collision detection
-			hitGround =  tileBL > 0 || tileBR > 0;
-			hitCeiling = tileTL > 0 || tileTR > 0;
+
+			if (player.vel.y < -0.5f) {
+				hitGround = tileBL == TileFull || tileBR == TileFull;
+			} else {
+				hitGround = tileBL != TileEmpty || tileBR != TileEmpty;
+			}
+			hitCeiling = tileTL == TileFull || tileTR == TileFull;
 
 			// If we hit the ground, revert to old position
 			if (hitGround || hitCeiling) {
@@ -252,6 +249,14 @@ void UpdateGameplay(Game* game) {
 			}
 		}
 
+		// Death conditions?
+		if (player.bbox.y > game->canvasHeight) {
+			// Go to last checkpoint?
+			player.bbox = (Rectangle) { 107, 120, 12, 19 };
+			camera.offset.x = -21;
+		}
+
+
 		// Camera system
 		{
 			float cameraX = -camera.offset.x;
@@ -259,14 +264,15 @@ void UpdateGameplay(Game* game) {
 				/* printf("movedX: %f\n", movedX); */
 				float xDist = player.bbox.x - cameraX;
 				/* printf("xDist: %f\n", xDist); */
-				if (xDist > 450.0f && cameraX < mapWidth-800.0f) {
+				const float moveBox = 21.0f;
+
+				if (xDist > (game->canvasWidth/2+moveBox/2) && cameraX < mapWidth-game->canvasWidth) {
 					camera.offset.x -= movedX;
-				} else if(xDist < 350.0f && cameraX > 0.0f)  {
+				} else if(xDist < (game->canvasWidth/2-moveBox/2) && cameraX > 21.0f)  {
 					camera.offset.x -= movedX;
 				}
 			}
 		}
-
 	}
 }
 
@@ -295,8 +301,12 @@ void RecWavePoints(Vector2 *points, int len, float period) {
 void DrawGameplay(Game* game) {
 
 	Vector2 mousePos = GetMousePosition();
-	mousePos.x *= 0.4166666666666667;
-	mousePos.y *= 0.4166666666666667;
+	/* mousePos.x *= (float)game->canvasWidth/(float)game->screenWidth; */
+	/* mousePos.y *= (float)game->canvasHeight/(float)game->screenHeight; */
+
+	mousePos.x /= 4;
+	mousePos.y /= 4;
+
 	Vector2 mouseTilePos = MapWorldPosToMapPosVec(map, mousePos);
 
 	ClearBackground(RAYWHITE);
@@ -358,13 +368,13 @@ void DrawGameplay(Game* game) {
 			DrawTextureRec(characterSprites, sourceRec, pos, WHITE);
 		}
 
-		/* DrawLine(camera.target.x, -game->canvasHeight*10, camera.target.x, game->canvasHeight*10, GREEN); */
-		/* DrawLine(-game->canvasWidth*10, camera.target.y, game->canvasWidth*10, camera.target.y, GREEN); */
-
-		if (false) {
+		if (debugScreen) {
+			// Player Bounding Box
+			DrawRectangleLines(player.bbox.x, player.bbox.y, player.bbox.width, player.bbox.height, RED);
 			// Draw Grid
+			// TODO: camera relative
 			for (int x = 0; x < 64; x++) {
-				for (int y = 0; y < 64; y++) {
+				for (int y = 0; y < 13; y++) {
 					DrawRectangleLines(x*21, y*21, 21, 21, GRAY);
 					if (mouseTilePos.x == x && mouseTilePos.y == y) {
 						DrawRectangle(x*21, y*21, 21, 21, (Color) {0,255,0,128});
@@ -386,13 +396,11 @@ void DrawGameplay(Game* game) {
 		DrawText(buf, 10, 20, 10, BLACK);
 		snprintf(buf, 256, "tileData: %d", MapGetTile(map, mouseTilePos.x, mouseTilePos.y));
 		DrawText(buf, 10, 30, 10, BLACK);
-
-		snprintf(buf, 256, "cameraOffset: (%f, %f)", camera.offset.x, camera.offset.y);
+		snprintf(buf, 256, "tileType: %d", MapGetTileType(map, mouseTilePos.x, mouseTilePos.y));
 		DrawText(buf, 10, 40, 10, BLACK);
 
-		if (leftWall) {
-			DrawText("Left Wall!", 10, 50, 10, RED);
-		}
+		snprintf(buf, 256, "cameraOffset: (%f, %f)", camera.offset.x, camera.offset.y);
+		DrawText(buf, 10, 50, 10, BLACK);
 	}
 
 }

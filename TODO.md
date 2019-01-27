@@ -9,12 +9,12 @@
 - [X] PlayerCharacter + Animations
 - [X] Camera system?
 
-- [ ] Commit + WebBuild?
+- [X] Commit
 
 ## Gameplay!
 
-- [ ] Sound
-	- [ ] Rectangle Synth
+- [o] Sound
+	- [X] Rectangle Synth
 - [ ] Music
 	- [ ] xm muted tracks looping?
 

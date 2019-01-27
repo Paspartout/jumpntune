@@ -19,6 +19,8 @@ typedef struct Game {
 	RenderTexture2D screenTexture;
 	int canvasWidth;
 	int canvasHeight;
+	int screenWidth;
+	int screenHeight;
 	bool running;
 	GameScreen currentScreen;
 } Game;
