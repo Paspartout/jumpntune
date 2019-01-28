@@ -15,19 +15,19 @@ void InitIntro(Game* game) {
 void DeinitIntro(Game* game) {
 }
 void UpdateIntro(Game* game) {
-	if (counter++ == 1) {
+	if (counter++ == 120) {
 		GameSwitchScreen(game, TITLE);
 	}
 }
 void DrawIntro(Game* game) {
 	ClearBackground(RAYWHITE);
-	const char *msg = "Hello Jam!";
+	const char *msg = "MiniJam20: Music!";
 	const int fontSize = 32;
 	static int msgWidth = 0;
 	if (!msgWidth) { 
 		msgWidth = MeasureText(msg, fontSize);
 	}
-	DrawText(msg, (game->canvasWidth/2)-msgWidth/2, game->canvasHeight/2, fontSize, BLACK);
+	DrawText(msg, (game->canvasWidth/2)-msgWidth/2, game->canvasHeight/2-32, fontSize, BLACK);
 }
 // ==============================================
 
@@ -113,6 +113,9 @@ void DeinitCredits(Game* game) {
 	CloseAudioStream(stream);
 }
 void UpdateCredits(Game* game) {
+	if (IsKeyPressed(KEY_ESCAPE)) {
+		GameSwitchScreen(game, TITLE);
+	}
 
 	static int period = 183;
 	if (IsKeyPressed(KEY_UP)) {
@@ -146,7 +149,7 @@ void UpdateCredits(Game* game) {
 }
 void DrawCredits(Game* game) {
 	ClearBackground(RAYWHITE);
-	// Draw Title/Name
+	// Draw Credits
 	{
 		const char *msg = "Credits";
 		const int fontSize = 48;
@@ -155,6 +158,11 @@ void DrawCredits(Game* game) {
 			msgWidth = MeasureText(msg, fontSize);
 		}
 		DrawText(msg, (game->canvasWidth/2)-msgWidth/2, 32, fontSize, BLACK);
+
+
+		DrawText("Art: Kenney(www.kenney.nl)", 64, 96, 20, BLACK);
+		DrawText("Music: CHiP_OVERTURE - Drozerix", 64, 96+20+8, 20, BLACK);
+		DrawText("Toolkit: Raylib(raylib.com)", 64, 96+40+16, 20, BLACK);
 	}
 }
 // ==============================================

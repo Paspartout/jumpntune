@@ -16,12 +16,14 @@ void GameTick(Game *game) {
 		if (WindowShouldClose()) {
 			game->running = false;
 		}
-		if (IsKeyPressed(KEY_F)) {
-			ToggleFullscreen();
-		}
+
+		/* if (IsKeyPressed(KEY_F)) { */
+		/* 	ToggleFullscreen(); */
+		/* } */
 
 		// TODO: UpdateGame State
 		updateFunctions[game->currentScreen](game);
+
 	}
 
 	// Draw

@@ -6,6 +6,7 @@
 #include <math.h>
 #include <stdio.h>
 
+#define JAR_XM_IMPLEMENTATION
 #include <external/jar_xm.h>
 
 typedef struct Player {
@@ -41,11 +42,19 @@ static int musicConf = 0;
 const int MAX_MUSIC_CONF = 3;
 
 static bool musicChannles[][10] = {
-	{true, true, false, false, false, false, false, true, true, false},
-	{true, true, true, false, false, false, false, true, true, false},
-	{true, true, true, true, false, false, false, true, true, true},
+	{true, false, false, false, false, false, false, false, false, false},
+	{true, true, true, true, false, false, false, false, false, false},
+	{true, true, true, true, false, false, true, true, false, false},
 	{true, true, true, true, true, true, true, true, true, true},
 };
+
+// Bubble.xm
+/* static bool musicChannles[][10] = { */
+/* 	{true, true, false, false, false, false, false, true, true, false}, */
+/* 	{true, true, true, false, false, false, false, true, true, false}, */
+/* 	{true, true, true, true, false, false, false, true, true, true}, */
+/* 	{true, true, true, true, true, true, true, true, true, true}, */
+/* }; */
 
 static void MusicActivateConf(const int conf) {
 	for (int i = 0; i < 10; i++) {
@@ -55,7 +64,7 @@ static void MusicActivateConf(const int conf) {
 
 void InitGameplay(Game* game) {
 	// Load tiled map and spritesheet
-	map = LoadMap("res", "testmap.json");
+	map = LoadMap("resources", "testmap.json");
 	spritesheet = map->spritesheetTexture;
 	mapWidth = map->tiledMap->width * TILE_SIZE;
 	DrawMap(map);
@@ -124,7 +133,7 @@ void InitGameplay(Game* game) {
 
 	// Load music
 	musicStream = InitAudioStream(48000, 16, 2);
-	jar_xm_create_context_from_file(&xmCtx, 48000, "res/bubble.xm");
+	jar_xm_create_context_from_file(&xmCtx, 48000, "resources/chip_overture.xm");
 
 	MusicActivateConf(musicConf);
 	PlayAudioStream(musicStream);

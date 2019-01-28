@@ -47,18 +47,18 @@
 // Wait for events passively (sleeping while no events) instead of polling them actively every frame
 //#define SUPPORT_EVENTS_WAITING      1
 // Allow automatic screen capture of current screen pressing F12, defined in KeyCallback()
-#define SUPPORT_SCREEN_CAPTURE      1
+//#define SUPPORT_SCREEN_CAPTURE      1
 // Allow automatic gif recording of current screen pressing CTRL+F12, defined in KeyCallback()
-#define SUPPORT_GIF_RECORDING       1
+//#define SUPPORT_GIF_RECORDING       1
 
 
 //------------------------------------------------------------------------------------
 // Module: rlgl - Configuration Flags
 //------------------------------------------------------------------------------------
 // Support VR simulation functionality (stereo rendering)
-#define SUPPORT_VR_SIMULATOR        1
+//#define SUPPORT_VR_SIMULATOR        1
 // Include stereo rendering distortion shader (shader_distortion.h)
-#define SUPPORT_DISTORTION_SHADER   1
+//#define SUPPORT_DISTORTION_SHADER   1
 
 
 //------------------------------------------------------------------------------------
@@ -85,8 +85,8 @@
 #define SUPPORT_FILEFORMAT_HDR      1
 #define SUPPORT_FILEFORMAT_KTX      1
 #define SUPPORT_FILEFORMAT_ASTC     1
-//#define SUPPORT_FILEFORMAT_PKM    1
-//#define SUPPORT_FILEFORMAT_PVR    1
+#define SUPPORT_FILEFORMAT_PKM    1
+#define SUPPORT_FILEFORMAT_PVR    1
 
 // Support image export functionality (.png, .bmp, .tga, .jpg)
 #define SUPPORT_IMAGE_EXPORT        1
@@ -112,11 +112,11 @@
 // Module: models - Configuration Flags
 //------------------------------------------------------------------------------------
 // Selected desired model fileformats to be supported for loading
-#define SUPPORT_FILEFORMAT_OBJ      1
-#define SUPPORT_FILEFORMAT_MTL      1
+//#define SUPPORT_FILEFORMAT_OBJ      1
+//#define SUPPORT_FILEFORMAT_MTL      1
 // Support procedural mesh generation functions, uses external par_shapes.h library
 // NOTE: Some generated meshes DO NOT include generated texture coordinates
-#define SUPPORT_MESH_GENERATION     1
+//#define SUPPORT_MESH_GENERATION     1
 
 
 //------------------------------------------------------------------------------------

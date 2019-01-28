@@ -9,7 +9,7 @@ typedef struct Vector2i {
     int y;
 } Vector2i;
 
-#define GAME_NAME "Musicat"
+#define GAME_NAME "Jump'n'Tune"
 
 enum GameScreen { NONE, INTRO, TITLE, GAMEPLAY, CREDITS, NUM_SCREENS };
 typedef enum GameScreen GameScreen;

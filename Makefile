@@ -131,9 +131,6 @@ ifeq ($(PLATFORM),PLATFORM_WEB)
     CC = emcc
 endif
 
-# Define default make program: Mingw32-make
-MAKE = mingw32-make
-
 ifeq ($(PLATFORM),PLATFORM_DESKTOP)
     ifeq ($(PLATFORM_OS),LINUX)
         MAKE = make
@@ -149,7 +146,7 @@ endif
 #  -std=gnu99           defines C language mode (GNU C from 1999 revision)
 #  -Wno-missing-braces  ignore invalid warning (GCC bug 53119)
 #  -D_DEFAULT_SOURCE    use with -std=c99 on Linux and PLATFORM_WEB, required for timespec
-CFLAGS += -Og -g -Wall -std=c99 -D_DEFAULT_SOURCE -Wno-missing-braces
+CFLAGS += -O1  -s -Wall -std=c99 -D_DEFAULT_SOURCE -Wno-missing-braces
 
 # Additional flags for compiler (if desired)
 #CFLAGS += -Wextra -Wmissing-prototypes -Wstrict-prototypes
@@ -174,10 +171,10 @@ ifeq ($(PLATFORM),PLATFORM_WEB)
     # -s USE_PTHREADS=1          # multithreading support
     # -s WASM=1                  # support Web Assembly (https://github.com/kripken/emscripten/wiki/WebAssembly)
     # --preload-file resources   # specify a resources folder for data compilation
-    CFLAGS += -s USE_GLFW=3 -s ASSERTIONS=1 -s WASM=1 --profiling --preload-file resources
+    CFLAGS += -O1 -s USE_GLFW=3 -s WASM=1 -s EMTERPRETIFY=1 -s EMTERPRETIFY_ASYNC=1 --preload-file resources
     
     # Define a custom shell .html and output extension
-    CFLAGS += --shell-file $(RAYLIB_PATH)\templates\web_shell\shell.html
+    CFLAGS += --shell-file $(RAYLIB_PATH)/templates/web_shell/shell.html
     EXT = .html
 endif
 
