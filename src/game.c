@@ -13,13 +13,11 @@ void GameTick(Game *game) {
 	// Update
 	// ========================================================================
 	{
+#if !defined(PLATFORM_WEB)
 		if (WindowShouldClose()) {
 			game->running = false;
 		}
-
-		/* if (IsKeyPressed(KEY_F)) { */
-		/* 	ToggleFullscreen(); */
-		/* } */
+#endif
 
 		// TODO: UpdateGame State
 		updateFunctions[game->currentScreen](game);

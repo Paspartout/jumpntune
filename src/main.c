@@ -18,8 +18,8 @@ int main(int argc, char const* argv[])
 {
 	game.canvasWidth = 480;
 	game.canvasHeight = 270;
-	game.screenWidth = 1920;
-	game.screenHeight = 1080;
+	game.screenWidth = 1280;
+	game.screenHeight = 720;
 	game.running = true;
 	game.currentScreen = NONE;
 
@@ -33,6 +33,7 @@ int main(int argc, char const* argv[])
 		// Setup screenTexture for proper scaling
 		game.screenTexture = LoadRenderTexture(game.canvasWidth, game.canvasHeight);
 		SetTextureFilter(game.screenTexture.texture, 0);
+		TraceLog(LOG_INFO, "switching to intro...");
 		GameSwitchScreen(&game, INTRO);
 	}
 

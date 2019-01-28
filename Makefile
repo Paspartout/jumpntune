@@ -27,7 +27,7 @@
 # WARNING: To compile to HTML5, code must be redesigned to use emscripten.h and emscripten_set_main_loop()
 PLATFORM            ?= PLATFORM_DESKTOP
 RAYLIB_PATH         = vendor/raylib
-PROJECT_NAME        ?= musicat
+PROJECT_NAME        ?= jumpnchip
 
 # Default path for raylib on Raspberry Pi, if installed in different path, update it!
 ifeq ($(PLATFORM),PLATFORM_RPI)
@@ -171,7 +171,7 @@ ifeq ($(PLATFORM),PLATFORM_WEB)
     # -s USE_PTHREADS=1          # multithreading support
     # -s WASM=1                  # support Web Assembly (https://github.com/kripken/emscripten/wiki/WebAssembly)
     # --preload-file resources   # specify a resources folder for data compilation
-    CFLAGS += -O1 -s USE_GLFW=3 -s WASM=1 -s EMTERPRETIFY=1 -s EMTERPRETIFY_ASYNC=1 --preload-file resources
+    CFLAGS += -O1 -s USE_GLFW=3 -s WASM=1 -s ASSERTIONS=1 --preload-file resources
     
     # Define a custom shell .html and output extension
     CFLAGS += --shell-file $(RAYLIB_PATH)/templates/web_shell/shell.html
@@ -316,7 +316,7 @@ ifeq ($(PLATFORM),PLATFORM_RPI)
 	rm -f *.o
 endif
 ifeq ($(PLATFORM),PLATFORM_WEB)
-	del *.o *.html *.js
+	rm -f *.o *.html *.js *.wasm
 endif
 	@echo Cleaning done
 
