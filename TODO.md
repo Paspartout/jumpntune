@@ -19,7 +19,10 @@
 	- [ ] xm muted tracks looping?
 
 - [ ] Leveldesign
-	- [ ] Better Background/Paralalx?
+	- [ ] Implement Checkpoints
+		- [ ] Save position on collision
+		- [ ] Music!
+
 ## Resources
 
 - Level design

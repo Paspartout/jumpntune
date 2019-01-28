@@ -38,7 +38,7 @@ Map* LoadMap(const char *basePath, const char* mapPath) {
 	map->spritesheetTexture = LoadTextureFromImage(map->spritesheetImage);
 	SetTextureFilter(map->spritesheetTexture, FILTER_POINT);
 
-	// Find collision layer and assign it
+	// Find collision and object layer and assign them
 	cute_tiled_layer_t* layer = tm->layers;
 	map->collisionLayer = NULL;
 	while (layer && map->collisionLayer == NULL) {
@@ -52,6 +52,27 @@ Map* LoadMap(const char *basePath, const char* mapPath) {
 			}
 		}
 		layer = layer->next;
+	}
+	layer = tm->layers;
+	map->objectLayer = NULL;
+	while (layer && map->objectLayer == NULL) {
+		for (int i = 0; i < layer->property_count; i++) {
+			cute_tiled_property_t prop = layer->properties[i];
+			if(prop.type == CUTE_TILED_PROPERTY_BOOL &&
+			   strcmp(prop.name.ptr, "object") == 0 &&
+			   prop.data.boolean) {
+			   map->objectLayer = layer;
+				break;
+			}
+		}
+		layer = layer->next;
+	}
+
+
+
+	if (map->objectLayer == NULL) {
+		TraceLog(LOG_ERROR, "No object layer found in map!\n");
+		exit(-1);
 	}
 
 	if (map->collisionLayer == NULL) {
@@ -121,6 +142,21 @@ void DrawMap(Map *map) {
 	}
 }
 
+Vector2 MapWorldPosToMapPos(Map* map, float worldX, float worldY) {
+	const int tileSize = map->tiledTileset->tilewidth;
+	// TODO:
+	Vector2 mapPosition = {-1,0};
+	const float mx = (worldX - mapPosition.x) / (float)tileSize;
+	const float my = (worldY - mapPosition.y) / (float)tileSize;
+	return (Vector2) {(int)mx, (int)my};
+}
+
+
+Vector2 MapWorldPosToMapPosVec(Map* map, Vector2 worldPos) {
+	return MapWorldPosToMapPos(map, worldPos.x, worldPos.y);
+}
+
+
 // TODO: Specify layer?
 int MapGetTile(Map* map, int tileX, int tileY) {
 	const int w = map->tiledMap->width;
@@ -137,10 +173,10 @@ int MapGetTileVec(Map* map, Vector2 tilePos) {
 }
 
 
-const static int ONEWAY_TILES[] = {41, 158};
+const static int ONEWAY_TILES[] = {41, 158, 308, 339};
 
-// TODO: Specify layer?
-MapTileType MapGetTileType(Map* map, int tileX, int tileY) {
+// TODO: Specify layer?, cleanup, code duplication ^^^^
+MapTileCollisionType MapGetTileType(Map* map, int tileX, int tileY) {
 	const int w = map->tiledMap->width;
 	const int h = map->tiledMap->height;
 	if (tileX > w || tileY > h) {
@@ -150,8 +186,11 @@ MapTileType MapGetTileType(Map* map, int tileX, int tileY) {
 	if (tid <= 0) {
 		return TileEmpty;
 	}
+	if (tid == 344) {
+		return TileCheckPoint;
+	}
 
-	for (int i = 0; i < 2; i++) {
+	for (int i = 0; i < 4; i++) {
 		if (tid == ONEWAY_TILES[i]) {
 			return TileOneWay;
 		}
@@ -160,22 +199,32 @@ MapTileType MapGetTileType(Map* map, int tileX, int tileY) {
 	return TileFull;
 }
 
-MapTileType MapGetTileTypeVec(Map* map, Vector2 tilePos) {
+MapTileCollisionType MapGetTileTypeVec(Map* map, Vector2 tilePos) {
 	return MapGetTileType(map, tilePos.x, tilePos.y);
 }
 
 
-Vector2 MapWorldPosToMapPos(Map* map, float worldX, float worldY) {
-	const int tileSize = map->tiledTileset->tilewidth;
-	// TODO:
-	Vector2 mapPosition = {-1,0};
-	const float mx = (worldX - mapPosition.x) / (float)tileSize;
-	const float my = (worldY - mapPosition.y) / (float)tileSize;
-	return (Vector2) {(int)mx, (int)my};
+MapTileObjectType MapGetObjectType(Map* map, int tileX, int tileY) {
+	const int w = map->tiledMap->width;
+	const int h = map->tiledMap->height;
+	if (tileX > w || tileY > h) {
+		return TileNone;
+	}
+
+	const int tid = map->objectLayer->data[tileX + tileY * w]-1;
+	if (tid <= 0) {
+		return TileNone;
+	}
+	if (tid == 344) {
+		return TileCheckPoint;
+	}
+
+	return TileNone;
+}
+
+MapTileObjectType MapGetObjectTypeVec(Map* map, Vector2 tilePos) {
+	return MapGetObjectType(map, tilePos.x, tilePos.y);
 }
 
 
-Vector2 MapWorldPosToMapPosVec(Map* map, Vector2 worldPos) {
-	return MapWorldPosToMapPos(map, worldPos.x, worldPos.y);
-}
 

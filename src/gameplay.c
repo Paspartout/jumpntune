@@ -6,28 +6,52 @@
 #include <math.h>
 #include <stdio.h>
 
+#include <external/jar_xm.h>
+
 typedef struct Player {
 	Rectangle bbox;
 	Vector2 acc;
 	Vector2 vel;
 } Player;
 
+typedef struct Checkpoint {
+	Rectangle bbox;
+} Checkpoint;
+
 static struct Player player;
 
+// Constants
+const int TILE_SIZE = 21;
 
 // Module variables
 #define MAX_BUILDINGS 100
 static Camera2D camera;
-static Rectangle buildings[MAX_BUILDINGS];
-static Color buildColors[MAX_BUILDINGS];
 static Map* map;
 static int mapWidth;
 static bool debugScreen = false;
-const int TILE_SIZE = 21;
+static Vector2 currentCheckPoint;
 
 static Texture2D spritesheet;
-
 static Texture2D characterSprites;
+
+// Music stuff
+static jar_xm_context_t *xmCtx;
+static AudioStream musicStream;
+static int musicConf = 0;
+const int MAX_MUSIC_CONF = 3;
+
+static bool musicChannles[][10] = {
+	{true, true, false, false, false, false, false, true, true, false},
+	{true, true, true, false, false, false, false, true, true, false},
+	{true, true, true, true, false, false, false, true, true, true},
+	{true, true, true, true, true, true, true, true, true, true},
+};
+
+static void MusicActivateConf(const int conf) {
+	for (int i = 0; i < 10; i++) {
+		jar_xm_mute_channel(xmCtx, i+1, !musicChannles[conf][i]);
+	}
+}
 
 void InitGameplay(Game* game) {
 	// Load tiled map and spritesheet
@@ -88,7 +112,9 @@ void InitGameplay(Game* game) {
 		UnloadImage(img);
 	}
 
-	player.bbox = (Rectangle) { 107, 120, 12, 19 };
+	currentCheckPoint = (Vector2) {5, 5};
+
+	player.bbox = (Rectangle) { currentCheckPoint.x*21, currentCheckPoint.y*21, 12, 19 };
 	player.vel = (Vector2) { 0, 0 };
 
     camera.target = (Vector2){ player.bbox.x + 10, player.bbox.y + 10 };
@@ -96,38 +122,30 @@ void InitGameplay(Game* game) {
     camera.rotation = 0.0f;
     camera.zoom = 1.0f;
 
-	int spacing = 0;
-    for (int i = 0; i < MAX_BUILDINGS; i++)
-    {
-        buildings[i].width = GetRandomValue(50, 200);
-        buildings[i].height = GetRandomValue(100, 800);
-        buildings[i].y = game->canvasHeight - 130 - buildings[i].height;
-        buildings[i].x = -6000 + spacing;
+	// Load music
+	musicStream = InitAudioStream(48000, 16, 2);
+	jar_xm_create_context_from_file(&xmCtx, 48000, "res/bubble.xm");
 
-        spacing += buildings[i].width;
-        
-        buildColors[i] = (Color){ GetRandomValue(200, 240), GetRandomValue(200, 240), GetRandomValue(200, 250), 255 };
-    }
+	MusicActivateConf(musicConf);
+	PlayAudioStream(musicStream);
+
 }
 void DeinitGameplay(Game* game) {
+	CloseAudioStream(musicStream);
+	jar_xm_free_context(xmCtx);
 	UnloadMap(map);
 }
+
+#define ADBUFSZ 8192
+static short musicBuffer[ADBUFSZ];
 
 
 void UpdateGameplay(Game* game) {
 
-	// Camera target follows player
-	// camera.target = (Vector2){ player.bbox.x + player.bbox.width , player.bbox.y + player.bbox.height };
-
-	// Camera rotation controls
-
-	if (debugScreen) {
-		if (IsKeyDown(KEY_W)) camera.offset.y+=2;
-		if (IsKeyDown(KEY_A)) camera.offset.x+=2;
-		if (IsKeyDown(KEY_S)) camera.offset.y-=2;
-		if (IsKeyDown(KEY_D)) camera.offset.x-=2;
+	if (IsAudioBufferProcessed(musicStream)) {
+		jar_xm_generate_samples_16bit(xmCtx, musicBuffer, ADBUFSZ/2);
+		UpdateAudioStream(musicStream, musicBuffer, ADBUFSZ);
 	}
-
 
 	// Player input
 	bool wantJump = false;
@@ -135,11 +153,12 @@ void UpdateGameplay(Game* game) {
 	static bool hitGround = false;
 	static bool hitCeiling = false;
 	{
+		const float playerXSpeed = debugScreen ? 10.0f: 5.0f;
 		if (IsKeyDown(KEY_RIGHT)) {
-			player.vel.x = 5.0f;
+			player.vel.x = playerXSpeed;
 		}
 		if (IsKeyDown(KEY_LEFT)) {
-			player.vel.x = -5.0f;
+			player.vel.x = -playerXSpeed;
 		}
 
 		wantJump = IsKeyPressed(KEY_SPACE);
@@ -147,6 +166,14 @@ void UpdateGameplay(Game* game) {
 
 		if (IsKeyPressed(KEY_F1)) {
 			debugScreen = !debugScreen;
+		}
+
+
+		if (debugScreen) {
+			if (IsKeyDown(KEY_W)) camera.offset.y+=2;
+			if (IsKeyDown(KEY_A)) camera.offset.x+=2;
+			if (IsKeyDown(KEY_S)) camera.offset.y-=2;
+			if (IsKeyDown(KEY_D)) camera.offset.x-=2;
 		}
 	}
 
@@ -190,10 +217,10 @@ void UpdateGameplay(Game* game) {
 			const Vector2 playerTR = MapWorldPosToMapPosVec(map, (Vector2) {player.bbox.x+player.bbox.width, player.bbox.y});
 			const Vector2 playerBL = MapWorldPosToMapPosVec(map, (Vector2) {player.bbox.x, player.bbox.y+player.bbox.height});
 			const Vector2 playerBR = MapWorldPosToMapPosVec(map, (Vector2) {player.bbox.x+player.bbox.width, player.bbox.y+player.bbox.height});
-			int tileTL = MapGetTileTypeVec(map, playerTL);
-			int tileTR = MapGetTileTypeVec(map, playerTR);
-			int tileBL = MapGetTileTypeVec(map, playerBL);
-			int tileBR = MapGetTileTypeVec(map, playerBR);
+			const MapTileCollisionType tileTL = MapGetTileTypeVec(map, playerTL);
+			const MapTileCollisionType tileTR = MapGetTileTypeVec(map, playerTR);
+			const MapTileCollisionType tileBL = MapGetTileTypeVec(map, playerBL);
+			const MapTileCollisionType tileBR = MapGetTileTypeVec(map, playerBR);
 
 			const bool leftWall = tileTL != TileEmpty || tileBL != TileEmpty;
 			const bool rightWall = tileTR != TileEmpty || tileBR != TileEmpty;
@@ -228,10 +255,10 @@ void UpdateGameplay(Game* game) {
 			const Vector2 playerTR = MapWorldPosToMapPosVec(map, (Vector2) {player.bbox.x+player.bbox.width, player.bbox.y});
 			const Vector2 playerBL = MapWorldPosToMapPosVec(map, (Vector2) {player.bbox.x, player.bbox.y+player.bbox.height});
 			const Vector2 playerBR = MapWorldPosToMapPosVec(map, (Vector2) {player.bbox.x+player.bbox.width, player.bbox.y+player.bbox.height});
-			const MapTileType tileTL = MapGetTileTypeVec(map, playerTL);
-			const MapTileType tileTR = MapGetTileTypeVec(map, playerTR);
-			const MapTileType tileBL = MapGetTileTypeVec(map, playerBL);
-			const MapTileType tileBR = MapGetTileTypeVec(map, playerBR);
+			const MapTileCollisionType tileTL = MapGetTileTypeVec(map, playerTL);
+			const MapTileCollisionType tileTR = MapGetTileTypeVec(map, playerTR);
+			const MapTileCollisionType tileBL = MapGetTileTypeVec(map, playerBL);
+			const MapTileCollisionType tileBR = MapGetTileTypeVec(map, playerBR);
 
 			// Y collision detection
 
@@ -252,8 +279,46 @@ void UpdateGameplay(Game* game) {
 		// Death conditions?
 		if (player.bbox.y > game->canvasHeight) {
 			// Go to last checkpoint?
-			player.bbox = (Rectangle) { 107, 120, 12, 19 };
-			camera.offset.x = -21;
+			player.bbox = (Rectangle) { currentCheckPoint.x*TILE_SIZE, currentCheckPoint.y*TILE_SIZE-30, 12, 19 };
+			camera.offset.x = -player.bbox.x + (game->canvasWidth/2);
+		}
+
+		// Objects
+		{
+			const Vector2 playerTL = MapWorldPosToMapPosVec(map, (Vector2) {player.bbox.x, player.bbox.y});
+			const Vector2 playerTR = MapWorldPosToMapPosVec(map, (Vector2) {player.bbox.x+player.bbox.width, player.bbox.y});
+			const Vector2 playerBL = MapWorldPosToMapPosVec(map, (Vector2) {player.bbox.x, player.bbox.y+player.bbox.height});
+			const Vector2 playerBR = MapWorldPosToMapPosVec(map, (Vector2) {player.bbox.x+player.bbox.width, player.bbox.y+player.bbox.height});
+			const MapTileObjectType tileTL = MapGetObjectTypeVec(map, playerTL);
+			const MapTileObjectType tileTR = MapGetObjectTypeVec(map, playerTR);
+			const MapTileObjectType tileBL = MapGetObjectTypeVec(map, playerBL);
+			const MapTileObjectType tileBR = MapGetObjectTypeVec(map, playerBR);
+
+			bool checkPointHit = false;
+			Vector2 checkPoint;
+			if (tileTL == TileCheckPoint) {
+				checkPointHit = true;
+				checkPoint = playerTL;
+			} else if(tileTR == TileCheckPoint) {
+				checkPointHit = true;
+				checkPoint = playerTR;
+			} else if(tileBL == TileCheckPoint) {
+				checkPointHit = true;
+				checkPoint = playerBL;
+			} else if(tileBR == TileCheckPoint) {
+				checkPointHit = true;
+				checkPoint = playerBR;
+			}
+			if (checkPointHit) {
+				currentCheckPoint = checkPoint;
+				const int tileX = checkPoint.x;
+				const int tileY = checkPoint.y;
+				printf("x%d %d\n", tileX, tileY);
+				map->objectLayer->data[tileX + tileY*map->tiledMap->width] = 343;
+				musicConf = musicConf < MAX_MUSIC_CONF ? musicConf + 1 : MAX_MUSIC_CONF;
+				printf("musicConf: %d\n", musicConf);
+				MusicActivateConf(musicConf);
+			}
 		}
 
 
@@ -401,6 +466,10 @@ void DrawGameplay(Game* game) {
 
 		snprintf(buf, 256, "cameraOffset: (%f, %f)", camera.offset.x, camera.offset.y);
 		DrawText(buf, 10, 50, 10, BLACK);
+
+		snprintf(buf, 256, "PlayerPos: (%f, %f)", player.bbox.x, player.bbox.y);
+		DrawText(buf, 10, 60, 10, BLACK);
+
 	}
 
 }

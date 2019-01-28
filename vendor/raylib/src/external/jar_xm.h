@@ -61,6 +61,7 @@
 #include <stdint.h>
 #include <limits.h>
 #include <string.h>
+#include <stdbool.h>
 
 
 
@@ -119,6 +120,11 @@ int jar_xm_create_context_safe(jar_xm_context_t** ctx, const char* moddata, size
 /** Free a XM context created by jar_xm_create_context(). */
 void jar_xm_free_context(jar_xm_context_t* ctx);
 
+void jar_xm_generate_samples_16bit(jar_xm_context_t* ctx, short* output, size_t numsamples);
+
+#ifdef JAR_XM_IMPLEMENTATION
+
+
 /** Play the module and put the sound samples in an output buffer.
  *
  * @param output buffer of 2*numsamples elements (A left and right value for each sample)
@@ -163,6 +169,8 @@ void jar_xm_generate_samples_8bit(jar_xm_context_t* ctx, char* output, size_t nu
 
     free(musicBuffer);
 }
+
+#endif
 
 
 

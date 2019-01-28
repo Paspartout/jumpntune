@@ -88,6 +88,33 @@ typedef struct Sound {
     int format;             // Audio format specifier
 } Sound;
 
+
+// Music type (file streaming from memory)
+typedef struct MusicData {
+    MusicContextType ctxType;           // Type of music context
+#if defined(SUPPORT_FILEFORMAT_OGG)
+    stb_vorbis *ctxOgg;                 // OGG audio context
+#endif
+#if defined(SUPPORT_FILEFORMAT_FLAC)
+    drflac *ctxFlac;                    // FLAC audio context
+#endif
+#if defined(SUPPORT_FILEFORMAT_MP3)
+    drmp3 ctxMp3;                       // MP3 audio context
+#endif
+#if defined(SUPPORT_FILEFORMAT_XM)
+    jar_xm_context_t *ctxXm;            // XM chiptune context
+#endif
+#if defined(SUPPORT_FILEFORMAT_MOD)
+    jar_mod_context_t ctxMod;           // MOD chiptune context
+#endif
+
+    AudioStream stream;                 // Audio stream (double buffering)
+
+    int loopCount;                      // Loops count (times music repeats), -1 means infinite loop
+    unsigned int totalSamples;          // Total number of samples
+    unsigned int samplesLeft;           // Number of samples left to end
+} MusicData;
+
 // Music type (file streaming from memory)
 // NOTE: Anything longer than ~10 seconds should be streamed
 typedef struct MusicData *Music;
