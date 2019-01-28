@@ -27,7 +27,7 @@
 # WARNING: To compile to HTML5, code must be redesigned to use emscripten.h and emscripten_set_main_loop()
 PLATFORM            ?= PLATFORM_DESKTOP
 RAYLIB_PATH         = vendor/raylib
-PROJECT_NAME        ?= jumpnchip
+PROJECT_NAME        ?= jumpntune
 
 # Default path for raylib on Raspberry Pi, if installed in different path, update it!
 ifeq ($(PLATFORM),PLATFORM_RPI)

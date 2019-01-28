@@ -38,8 +38,8 @@ Module.expectedDataFileDownloads++;
     } else {
       throw 'using preloaded data can only be done on a web page or in a web worker';
     }
-    var PACKAGE_NAME = 'jumpnchip.data';
-    var REMOTE_PACKAGE_BASE = 'jumpnchip.data';
+    var PACKAGE_NAME = 'jumpntune.data';
+    var REMOTE_PACKAGE_BASE = 'jumpntune.data';
     if (typeof Module['locateFilePackage'] === 'function' && !Module['locateFile']) {
       Module['locateFile'] = Module['locateFilePackage'];
       err('warning: you defined Module.locateFilePackage, that has been renamed to Module.locateFile (using your locateFilePackage for now)');
@@ -170,10 +170,10 @@ Module['FS_createPath']('/', 'resources', true, true);
           for (var i = 0; i < files.length; ++i) {
             DataRequest.prototype.requests[files[i].filename].onload();
           }
-              Module['removeRunDependency']('datafile_jumpnchip.data');
+              Module['removeRunDependency']('datafile_jumpntune.data');
 
     };
-    Module['addRunDependency']('datafile_jumpnchip.data');
+    Module['addRunDependency']('datafile_jumpntune.data');
   
     if (!Module.preloadResults) Module.preloadResults = {};
   
@@ -194,7 +194,7 @@ Module['FS_createPath']('/', 'resources', true, true);
   }
 
  }
- loadPackage({"files": [{"start": 0, "audio": 0, "end": 64868, "filename": "/resources/spritesheetAlpha.png"}, {"start": 64868, "audio": 0, "end": 91403, "filename": "/resources/testmap.json"}, {"start": 91403, "audio": 0, "end": 151768, "filename": "/resources/chip_overture.xm"}], "remote_package_size": 151768, "package_uuid": "104cca98-9281-4465-9537-ee8f732f0706"});
+ loadPackage({"files": [{"start": 0, "audio": 0, "end": 64868, "filename": "/resources/spritesheetAlpha.png"}, {"start": 64868, "audio": 0, "end": 91403, "filename": "/resources/testmap.json"}, {"start": 91403, "audio": 0, "end": 151768, "filename": "/resources/chip_overture.xm"}], "remote_package_size": 151768, "package_uuid": "91531c3b-1741-488e-830e-b11c85c242eb"});
 
 })();
 
@@ -1679,9 +1679,9 @@ function integrateWasmJS() {
 
   var method = 'native-wasm';
 
-  var wasmTextFile = 'jumpnchip.wast';
-  var wasmBinaryFile = 'jumpnchip.wasm';
-  var asmjsCodeFile = 'jumpnchip.temp.asm.js';
+  var wasmTextFile = 'jumpntune.wast';
+  var wasmBinaryFile = 'jumpntune.wasm';
+  var asmjsCodeFile = 'jumpntune.temp.asm.js';
 
   if (!isDataURI(wasmTextFile)) {
     wasmTextFile = locateFile(wasmTextFile);
